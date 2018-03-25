@@ -7,7 +7,9 @@ geometry: margin=4cm
 
 # Domain Background
 
-DonorsChoose.org allows public school teachers from around the country to request materials needed for projects and experiences for the students.  These proposals can be chosen to be funded by donors.  This enables teachers to provide a richer set of experiences for their kids and allows donors to fund proposals that they are passionate about.  DonorsChoose.org receives hundreds of thousands of project proposals each year.  These proposals are manually screened by many volunteers in a subjective and time intensive way.  No sort of automation has been used to standardize or speed up the process.
+There are many domains in which some writing is submitted and manually reviewed by a human to approve or reject the writing:  scientific paper submissions to journals, book drafts to publishers, loan and credit applications, donor funding, and more.  When completed by a human, many of these processes are time consuming and produce a biased result.  This can give an inconsistent experience to everyone involved.  However, in recent years, much has been done to improve this process in some fields, particularly loan and credit applications.  According Frame et al., automatic credit scoring has led to "an 8.4 percent increase in the portfolio share of small-business loans, or $4 billion per institution."  They posit that "credit scoring lowers information costs between borrowers and lenders", leading to an increased throughput of application processing.  Additionally, as the credit industry has grown, a number of machine learning techniques have been tried for credit modeling, such as SVMs in research by Huang et al. using SVMs and data mining as well as research by Tomczak et.al using Restricted Boltzmann Machines.
+
+Approving proposals for donor contributions can be seen as an analogous problem to credit scoring.  Both problems are trying to best allocate funds to accomplish some goal and can be improved by automated decisioning.  DonorsChoose.org allows public school teachers from around the country to request materials needed for projects and experiences for the students.  These proposals can be chosen to be funded by donors.  This enables teachers to provide a richer set of experiences for their kids and allows donors to fund proposals that they are passionate about.  DonorsChoose.org receives hundreds of thousands of project proposals each year.  These proposals are manually screened by many volunteers in a subjective and time intensive way.  No sort of automation has been used to standardize or speed up the process.
 
 # Problem Statement
 
@@ -27,27 +29,29 @@ Prior teachers' proposals and the proposals' approval statuses will be used as t
 
 There are three primary datasets that will be used in this project:
 
-* train.csv:  This dataset provides proposal information along with a label indicating whether the proposal was approved
-* test.csv:  This dataset provides proposal information without a label indicating whether the proposal was approved.  This is specific to the Kaggle competition that provided this data and could be used for testing and algorithm against Kaggle's held out set.
-* resources.csv:  This dataset contains the description, quantity, and price of resources requested as part of the proposal
+* train.csv:  This dataset provides proposal information along with a label indicating whether the proposal was approved.  This dataset has 182,080 rows and 16 columns.  The dataset file size is 321 MB and it uses 459 MB of memory when loaded into memory in Python.  This will easily fit into memory on a standard laptop.
+* test.csv:  This dataset provides proposal information without a label indicating whether the proposal was approved.  This is specific to the Kaggle competition that provided this data and could be used for testing and algorithm against Kaggle's held out set.  This dataset has 78,035 rows and 15 columns.  The dataset file size is 138 MB and it uses 196 MB of memory when loaded into memory in Python.  This will easily fit into memory on a standard laptop.
+* resources.csv:  This dataset contains the description, quantity, and price of resources requested as part of the proposal.  This dataset has 1,541,272 rows and r columns.  The dataset file size is 122 MB and it uses 282 MB of memory when loaded into memory in Python.  This will easily fit into memory on a standard laptop.
 
 The train and test dataset provide many relevant data elements for predicting the proposal's approval.  These include the following[^1]:
 
-* the teacher prefix
-* the number of proposals previously submitted by the teacher
-* the state the school is located in
-* when the proposal was submitted
-* the category and subcategory of the proposal (e.g. "Music & The Arts" and "Visual Arts")
-* the proposal title
-* the essays submitted with the proposal
+* the teacher prefix:  This is a categorical variable identifying the teacher's title
+* the number of proposals previously submitted by the teacher:  This is a numeric variable
+* the state the school is located in:  This is categorical variable aligned to state
+* when the proposal was submitted:  This is a timestamp
+* the category and subcategory of the proposal (e.g. "Music & The Arts" and "Visual Arts"):  These are categorical variables
+* the proposal title:  This is a free text string
+* the essays submitted with the proposal:  This is a free text string
 
 These data elements contain both raw text and structured metadata.  Some of the metadata has a single value per proposal while some metadata has multiple entries per proposal.  These data elements can be used in different ways as inputs to a supervised machine learning model to predict the approval status of an unseen proposal.
+
+The class to be predicted in the `train.csv` dataset is `project_is_approved`.  Approximately 85% of the projects are approved and 15% are not approved.  This target is a bit imbalanced which could affect modeling.  However, since this isn't a large imbalance and the dataset is sufficiently large, it shouldn't create too much of a problem.  There are still 27,734 projects that weren't approved vs. 154,346 projects that were approved.
 
 [^1]: For the full data dictionary, see the DonorsChoose Kaggle Competition Data website:  https://www.kaggle.com/c/donorschoose-application-screening/data
 
 # Solution Statement
 
-To automate the proposal screening process, provide more consistent screening results, and focus volunteers' time, a supervised machine learning model can be used to predict whether the proposal will be approved or not.  The dataset consisting of past proposals can be transformed and aggregated into features that will be inputs to the machine learning models.  The approval status of these past projects can be used as the target to train the supervised model and let it learn the appropriate features of an approved or rejected proposal.  This machine learning model will provide a more consistent screening process for the proposals and identify proposals that received low scores (i.e. the model is predicting that the proposal will be rejected) and may need more direct attention for the volunteers.  This machine learning model would solve the three key parts of the problem and provide a pre-screening process that could automatically approve many of the proposals.
+To automate the proposal screening process, provide more consistent screening results, and focus volunteers' time, a supervised machine learning model can be used to predict whether the proposal will be approved or not.  The dataset consisting of past proposals can be transformed and aggregated into features that will be inputs to the machine learning models.  The approval status of these past projects can be used as the target to train the supervised model and let it learn the appropriate features of an approved or rejected proposal.  This machine learning model will provide a more consistent screening process for the proposals and identify proposals that received low scores (i.e. the model is predicting that the proposal will be rejected) and may need more direct attention for the volunteers.  There are many potential models that fit this profile:  Logistic Regression with its directly interpretable coefficients, a tree-based algorithm (e.g. Random Forest or Gradient Boosting Machines) with partial dependency plots, or a more complex Deep Learning model (e.g. an RNN or sequence model) with some interpretability layer such as LIME.  This machine learning model would solve the three key parts of the problem and provide a pre-screening process that could automatically approve many of the proposals.
 
 # Benchmark Model
 
@@ -116,6 +120,12 @@ Though much model evaluation will be happening throughout the model selection an
 The application screening process at DonorsChoose.org is a great opportunity to apply machine learning.  A supervised machine learning model could greatly speed up the screening process while providing a more consistent experience for the proposal submitters.  Additionally, it could help direct the volunteer resources to the most relevant areas, such as proposals that are more complicated or need more assistance.
 
 # References
+
+Frame, W. Scott, Aruna Srinivasan, and Lynn Woosley. "The effect of credit scoring on small-business lending." Journal of money, credit and banking (2001): 813-825.
+
+Huang, Cheng-Lung, Mu-Chen Chen, and Chieh-Jen Wang. "Credit scoring with a data mining approach based on support vector machines." Expert systems with applications 33.4 (2007): 847-856.
+
+Tomczak, Jakub M., and Maciej Zięba. "Classification Restricted Boltzmann Machine for comprehensible credit scoring model." Expert Systems with Applications 42.4 (2015): 1789-1796.
 
 Kaggle DonorsChoose.org Application Screening: Competition Description. c2018. Kaggle Inc; [accessed 2018 Mar 25]. https://www.kaggle.com/c/donorschoose-application-screening#description
 
